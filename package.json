@@ -1,0 +1,17 @@
+{
+  "name": "bubble_volcano",
+  "version": "0.0.0",
+  "description": "A volcano that receives tweets, tweets back, and triggers a bubble machine. Works with a Raspberry Pi.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaypozo/bubble_volcano.git"
+  },
+  "author": "Jay Pozo",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "fa4416d6699f4acb0560fcc2a8ddc3abdabf10ea"
+}
