@@ -13,5 +13,8 @@
   "author": "Jay Pozo",
   "license": "MIT",
   "readmeFilename": "README.md",
-  "gitHead": "fa4416d6699f4acb0560fcc2a8ddc3abdabf10ea"
+  "gitHead": "fa4416d6699f4acb0560fcc2a8ddc3abdabf10ea",
+  "dependencies": {
+    "twitterlisten": "~0.1.16"
+  }
 }
