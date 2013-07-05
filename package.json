@@ -15,7 +15,6 @@
   "readmeFilename": "README.md",
   "gitHead": "fa4416d6699f4acb0560fcc2a8ddc3abdabf10ea",
   "dependencies": {
-    "twitterlisten": "~0.1.16",
     "mongoose": "~3.6.12",
     "request": "~2.21.0",
     "twit": "~1.1.7",

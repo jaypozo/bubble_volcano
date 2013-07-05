@@ -1,9 +1,8 @@
-var TwitterListen = require('twitterlisten'),
-    twitter_listen = new TwitterListen(["kelohavolcano"]), 
-    mongoose = require('mongoose'),
+var mongoose = require('mongoose'),
     auth_data = require('./auth_data.json'),
-    gpio = require('pi-gpio'),
+    net = require('net'),
     Twit = require('twit');
+
 
 var T = new Twit({
   consumer_key : auth_data.consumer_key,
@@ -11,6 +10,8 @@ var T = new Twit({
   access_token : auth_data.access_token,
   access_token_secret : auth_data.access_token_secret
 })
+
+var stream = T.stream('statuses/filter', {track:'#yolo'});
 
 var confirm_messages = [
   ', the volcano is listening! Watch for those bubbles!',
@@ -41,38 +42,36 @@ var bubble_messages = [
   ' these bubbles are bubbling for you!'
 ];
 
-mongoose.connect('mongodb://localhost/volcano');
+var relay_client = net.connect({port:9999},
+    function(){
+    console.log('relay_client connected');
+    stream.on('tweet', function(event_data){
+      var date = new Date();
+      var current_time = date.getTime();
+      console.log('MACHINE STATUS : Tweet heard: '+event_data.text);
+      var tweet = new Tweet({name:event_data.user.screen_name, text:event_data.text, time:current_time});
+      tweet.save();
+      //confirmTweet('@'+event_data.user.screen_name);
+    })
+})
+
+mongoose.connect('mongodb://jaypozo:Pr0xfader@ds031968.mongolab.com:31968/volcano');
 
 var Tweet = mongoose.model("Tweet", {name:String, text:String, time:Number});
-
-twitter_listen.on('tweet', function(event_data){
-  var date = new Date();
-  var current_time = date.getTime();
-  console.log('MACHINE STATUS : Tweet heard: '+event_data.text);
-  var tweet = new Tweet({name:event_data.user.screen_name, text:event_data.text, time:current_time});
-  tweet.save();
-  confirmTweet('@'+event_data.user.screen_name);
-})
 
 // stop blowing bubbles
 var stopBubbles = function(){
   console.log('MACHINE STATUS : Stopping bubbles!');
-  gpio.open(16, "output", function(err){
-    gpio.write(16, 0, function(){
-      gpio.close(16);
-    })
-  })
+  relay_client.write('roff');
+  relay_client.end();
 }
 
 // trigger the bubble machine for 30 seconds!
 var blowBubbles = function(){
   console.log('MACHINE STATUS : Blowing bubbles!');
-  gpio.open(16, "output", function(err){
-    gpio.write(16, 1, function(){
-      gpio.close(16);
-    })
-  });
-  setTimeout(stopBubbles, 30000);
+  relay_client.write('ron');
+  relay_client.end();
+  setTimeout(stopBubbles, 1000);
 }
 
 // send a tweet that says your bubbles are coming!
@@ -98,11 +97,11 @@ var checkTweets = function(){
   var tweet = Tweet.find().sort({time:1}).limit(1) 
     tweet.exec(function(err,docs){
       if (docs.length > 0){
-        bubbleTweet(docs[0]);
+        //bubbleTweet(docs[0]);
         Tweet.remove({_id:docs[0]._id}).exec();
         blowBubbles();
       }
     })
 }
 
-setInterval(checkTweets, 90000);
+setInterval(checkTweets, 5000);
