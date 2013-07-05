@@ -1,6 +1,6 @@
 var mongoose = require('mongoose'),
     auth_data = require('./auth_data.json'),
-    net = require('net'),
+    request = require('request'),
     Twit = require('twit');
 
 
@@ -42,18 +42,13 @@ var bubble_messages = [
   ' these bubbles are bubbling for you!'
 ];
 
-var relay_client = net.connect({port:9999},
-    function(){
-    console.log('relay_client connected');
-    relay
-    stream.on('tweet', function(event_data){
-      var date = new Date();
-      var current_time = date.getTime();
-      console.log('MACHINE STATUS : Tweet heard: '+event_data.text);
-      var tweet = new Tweet({name:event_data.user.screen_name, text:event_data.text, time:current_time});
-      tweet.save();
-      //confirmTweet('@'+event_data.user.screen_name);
-    })
+stream.on('tweet', function(event_data){
+  var date = new Date();
+  var current_time = date.getTime();
+  console.log('MACHINE STATUS : Tweet heard: '+event_data.text);
+  var tweet = new Tweet({name:event_data.user.screen_name, text:event_data.text, time:current_time});
+  tweet.save();
+  //confirmTweet('@'+event_data.user.screen_name);
 })
 
 mongoose.connect(auth_data.mongo_endpoint);
@@ -63,13 +58,13 @@ var Tweet = mongoose.model("Tweet", {name:String, text:String, time:Number});
 // stop blowing bubbles
 var stopBubbles = function(){
   console.log('MACHINE STATUS : Stopping bubbles!');
-  relay_client.end('roff');
+  request.get('http://localhost:8080/bubbles/off');
 }
 
 // trigger the bubble machine for 30 seconds!
 var blowBubbles = function(){
   console.log('MACHINE STATUS : Blowing bubbles!');
-  relay_client.end('ron');
+  request.get('http://localhost:8080/bubbles/on');
   setTimeout(stopBubbles, 3000);
 }
 

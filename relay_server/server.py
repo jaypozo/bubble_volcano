@@ -1,6 +1,5 @@
-import socket
 import piface.pfio as pfio
-
+from bottle import route, run, template
   
 def bubbleson():
   print "bubs on"
@@ -12,23 +11,15 @@ def bubblesoff():
   pfio.digital_write(0,0)
   return
 
-host = ''
-port = 9999
-backlog = 5
-size = 1024
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-s.bind((host,port))
-s.listen(backlog)
 pfio.init()
 
-while 1:
-  client, address = s.accept()
-  data = client.recv(size)
-  if data:
-    client.send(data)
-    if data == "ron":
-      bubbleson()
-    if data == "roff":
-      bubblesoff()
-  client.close()
+@route('/bubbles/<state>')
+def index(state='on'):
+  if state == 'on':
+    bubbleson()
+    return "on"
+  if state == 'off':
+    bubblesoff()
+    return "off"
+
+run(host='localhost', port=8080)
