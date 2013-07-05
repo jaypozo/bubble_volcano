@@ -1,30 +1,34 @@
-import SocketServer
+import socket
 import piface.pfio as pfio
 
-class MyTCPHandler(SocketServer.BaseRequestHandler):
-  pfio.init()
   
-  def bubbleson(something):
-    print "bubs on"
-    pfio.digital_write(0,1)
-    return
+def bubbleson():
+  print "bubs on"
+  pfio.digital_write(0,1)
+  return
 
-  def bubblesoff(something):
-    print "bubs off"
-    pfio.digital_write(0,0)
-    return
-  def handle(self):
-    self.data = self.request.recv(1024).strip()
+def bubblesoff():
+  print "bubs off"
+  pfio.digital_write(0,0)
+  return
 
-    if self.data == "ron":
-      self.bubbleson()
-    if self.data == "roff":
-      self.bubblesoff()
-    
-    self.request.sendall("got it")
+host = ''
+port = 9999
+backlog = 5
+size = 1024
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+s.bind((host,port))
+s.listen(backlog)
+pfio.init()
 
-if __name__ == "__main__":
-  HOST, PORT = "localhost",9999
-
-  server = SocketServer.TCPServer((HOST,PORT), MyTCPHandler)
-  server.serve_forever()
+while 1:
+  client, address = s.accept()
+  data = client.recv(size)
+  if data:
+    client.send(data)
+    if data == "ron":
+      bubbleson()
+    if data == "roff":
+      bubblesoff()
+  client.close()

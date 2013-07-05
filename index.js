@@ -45,6 +45,7 @@ var bubble_messages = [
 var relay_client = net.connect({port:9999},
     function(){
     console.log('relay_client connected');
+    relay
     stream.on('tweet', function(event_data){
       var date = new Date();
       var current_time = date.getTime();
@@ -55,23 +56,21 @@ var relay_client = net.connect({port:9999},
     })
 })
 
-mongoose.connect('mongodb://jaypozo:Pr0xfader@ds031968.mongolab.com:31968/volcano');
+mongoose.connect(auth_data.mongo_endpoint);
 
 var Tweet = mongoose.model("Tweet", {name:String, text:String, time:Number});
 
 // stop blowing bubbles
 var stopBubbles = function(){
   console.log('MACHINE STATUS : Stopping bubbles!');
-  relay_client.write('roff');
-  relay_client.end();
+  relay_client.end('roff');
 }
 
 // trigger the bubble machine for 30 seconds!
 var blowBubbles = function(){
   console.log('MACHINE STATUS : Blowing bubbles!');
-  relay_client.write('ron');
-  relay_client.end();
-  setTimeout(stopBubbles, 1000);
+  relay_client.end('ron');
+  setTimeout(stopBubbles, 3000);
 }
 
 // send a tweet that says your bubbles are coming!
