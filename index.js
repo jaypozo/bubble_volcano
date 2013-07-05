@@ -1,8 +1,16 @@
 var mongoose = require('mongoose'),
     auth_data = require('./auth_data.json'),
     request = require('request'),
+    winston = require('winston'),
     Twit = require('twit');
+require('winston-mail');
 
+var logger = new (winston.Logger)({
+  transports: [
+    new (winston.transports.Console)({colorize:true}),
+    new (winston.transports.Mail)({to:"jay@jaymatter.com",host:"smtp.gmail.com", port:465, username:"jaypozo@gmail.com", password:"STIMillionsGeO.*(", ssl:true})
+  ]
+});
 
 var T = new Twit({
   consumer_key : auth_data.consumer_key,
@@ -41,6 +49,12 @@ var bubble_messages = [
   ' are you watching the volcano? Bubbles!',
   ' these bubbles are bubbling for you!'
 ];
+stream.on('disconnect', function(){
+  // reconnect
+  logger.log('Twitter stream disconnected.')
+})
+
+logger.log('info','Starting node app');
 
 stream.on('tweet', function(event_data){
   var date = new Date();
@@ -52,7 +66,9 @@ stream.on('tweet', function(event_data){
 })
 
 mongoose.connect(auth_data.mongo_endpoint);
-
+mongoose.connection.on('error',function(err){
+  logger.log('DB Error: '+err);
+})
 var Tweet = mongoose.model("Tweet", {name:String, text:String, time:Number});
 
 // stop blowing bubbles
@@ -65,14 +81,14 @@ var stopBubbles = function(){
 var blowBubbles = function(){
   console.log('MACHINE STATUS : Blowing bubbles!');
   request.get('http://localhost:8080/bubbles/on');
-  setTimeout(stopBubbles, 30000);
+  setTimeout(stopBubbles, 20000);
 }
 
 // send a tweet that says your bubbles are coming!
 var bubbleTweet = function(tweet_doc){
   var random_num = Math.floor(Math.random()*bubble_messages.length);
   T.post('statuses/update', {status:'@'+tweet_doc.name+bubble_messages[random_num]}, function(err,reply){
-    if (err) {console.log('Error: ', err);}
+    if (err) {logger.log('Tweet error: ', err);}
     console.log('MACHINE STATUS : Sending bubbles tweet '+(reply ? reply.text : reply));
   })
 }
@@ -81,7 +97,7 @@ var bubbleTweet = function(tweet_doc){
 var confirmTweet = function(username){
   var random_num = Math.floor(Math.random()*confirm_messages.length);
   T.post('statuses/update', {status:username+confirm_messages[random_num]}, function(err,reply){
-    if (err) {console.log('Error: ', err);}
+    if (err) {logger.log('Confirm tweet error: ', err);}
     console.log('MACHINE STATUS : Confirm tweet '+(reply ? reply.text : reply));
   })
 }
@@ -98,4 +114,5 @@ var checkTweets = function(){
     })
 }
 
-setInterval(checkTweets, 90000);
+blowBubbles();
+setInterval(checkTweets, 60000);
