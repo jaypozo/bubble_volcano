@@ -65,7 +65,7 @@ var stopBubbles = function(){
 var blowBubbles = function(){
   console.log('MACHINE STATUS : Blowing bubbles!');
   request.get('http://localhost:8080/bubbles/on');
-  setTimeout(stopBubbles, 3000);
+  setTimeout(stopBubbles, 30000);
 }
 
 // send a tweet that says your bubbles are coming!
@@ -98,4 +98,4 @@ var checkTweets = function(){
     })
 }
 
-setInterval(checkTweets, 5000);
+setInterval(checkTweets, 90000);
