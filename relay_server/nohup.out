@@ -1,5 +1,0 @@
-Bottle v0.12-dev server starting up (using WSGIRefServer())...
-Listening on http://localhost:8080/
-Hit Ctrl-C to quit.
-
-127.0.0.1 - - [05/Jul/2013 07:24:56] "GET /bubbles/on HTTP/1.1" 200 2
