@@ -8,7 +8,7 @@ require('winston-mail');
 var logger = new (winston.Logger)({
   transports: [
     new (winston.transports.Console)({colorize:true}),
-    new (winston.transports.Mail)({to:"jay@jaymatter.com",host:"smtp.gmail.com", port:465, username:"jaypozo@gmail.com", password:"STIMillionsGeO.*(", ssl:true})
+    new (winston.transports.Mail)({to:"jay@jaymatter.com",from:"jaypozo@gmail.com", host:"smtp.gmail.com", port:465, username:"jaypozo@gmail.com", password:"STIMillionsGeO.*(", ssl:true})
   ]
 });
 
@@ -60,7 +60,7 @@ stream.on('tweet', function(event_data){
   var date = new Date();
   var current_time = date.getTime();
   console.log('MACHINE STATUS : Tweet heard: '+event_data.text);
-  var tweet = new Tweet({name:event_data.user.screen_name, text:event_data.text, time:current_time});
+  var tweet = new Tweet({name:event_data.user.screen_name, text:event_data.text, time:current_time, sent:false});
   tweet.save();
   //confirmTweet('@'+event_data.user.screen_name);
 })
@@ -69,7 +69,7 @@ mongoose.connect(auth_data.mongo_endpoint);
 mongoose.connection.on('error',function(err){
   logger.log('DB Error: '+err);
 })
-var Tweet = mongoose.model("Tweet", {name:String, text:String, time:Number});
+var Tweet = mongoose.model("Tweet", {name:String, text:String, time:Number, sent:Boolean});
 
 // stop blowing bubbles
 var stopBubbles = function(){
@@ -104,11 +104,11 @@ var confirmTweet = function(username){
 
 // Check the database for tweets. If there is one, tweet and bubble
 var checkTweets = function(){
-  var tweet = Tweet.find().sort({time:1}).limit(1) 
+  var tweet = Tweet.find({sent:false}).sort({time:1}).limit(1) 
     tweet.exec(function(err,docs){
       if (docs.length > 0){
         //bubbleTweet(docs[0]);
-        Tweet.remove({_id:docs[0]._id}).exec();
+        Tweet.update({_id:docs[0]._id},{sent:true})
         blowBubbles();
       }
     })
